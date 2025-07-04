@@ -569,7 +569,7 @@ export default function HeartbeatHeroSection() {
                 href="https://pakhims.com/sign-up"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center justify-center bg-transparent backdrop-blur-md border-2 border-white/20 text-white hover:bg-white/10 px-8 py-4 text-lg font-semibold rounded-xl transition-all duration-300 hover:border-white/30 hover:shadow-lg hover:shadow-blue-500/20"
+                className="inline-flex items-center justify-center bg-transparent backdrop-blur-md border-2 border-white/20 text-white hover:bg-white/10 px-8 py-2 text-lg font-semibold rounded-xl transition-all duration-300 hover:border-white/30 hover:shadow-lg hover:shadow-blue-500/20"
               >
                 <Stethoscope className="w-5 h-5 mr-2" />
                 Pakhims Signup
