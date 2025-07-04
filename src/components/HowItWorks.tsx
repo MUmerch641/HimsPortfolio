@@ -114,20 +114,31 @@ const trustFeatures: TrustFeature[] = [
 ]
 
 export default function HealingWaveSymphony() {
+  // Hydration-safe state initialization
+  const [isHydrated, setIsHydrated] = useState(false)
   const [selectedFeature, setSelectedFeature] = useState<number | null>(null)
   const [waveOffset, setWaveOffset] = useState(0)
   const containerRef = useRef<HTMLDivElement>(null)
 
-  // Wave animation
+  // Hydration effect - runs only on client
   useEffect(() => {
+    setIsHydrated(true)
+  }, [])
+
+  // Wave animation - only after hydration
+  useEffect(() => {
+    if (!isHydrated) return
+    
     const timer = setInterval(() => {
       setWaveOffset(prev => (prev + 1) % 360)
     }, 50)
     return () => clearInterval(timer)
-  }, [])
+  }, [isHydrated])
 
-  // Close feature card on outside click
+  // Close feature card on outside click - only after hydration
   useEffect(() => {
+    if (!isHydrated) return
+    
     const handleClickOutside = (e: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
         setSelectedFeature(null)
@@ -135,9 +146,9 @@ export default function HealingWaveSymphony() {
     }
     document.addEventListener("mousedown", handleClickOutside)
     return () => document.removeEventListener("mousedown", handleClickOutside)
-  }, [])
+  }, [isHydrated])
 
-  // Generate wave path
+  // Generate wave path - deterministic for SSR
   const createWavePath = (offset: number, amplitude: number = 15) => {
     const points = []
     for (let i = 0; i <= 100; i += 2) {
@@ -148,9 +159,12 @@ export default function HealingWaveSymphony() {
     return `M ${points.join(" L ")}`
   }
 
-  // Shape component
+  // Shape component - SSR-safe
   const ShapeIcon = ({ feature, size = 48 }: { feature: Feature, size?: number }) => {
-    const baseClasses = `w-${size === 48 ? '12' : '16'} h-${size === 48 ? '12' : '16'} bg-gradient-to-r ${feature.color} flex items-center justify-center shadow-lg relative overflow-hidden`
+    // Use fixed size classes to avoid hydration mismatch
+    const sizeClasses = size === 48 ? 'w-12 h-12' : 'w-16 h-16'
+    const iconSizeClasses = size === 48 ? 'w-6 h-6' : 'w-8 h-8'
+    const baseClasses = `${sizeClasses} bg-gradient-to-r ${feature.color} flex items-center justify-center shadow-lg relative overflow-hidden`
     
     let shapeClasses = ""
     switch (feature.shape) {
@@ -173,7 +187,7 @@ export default function HealingWaveSymphony() {
     return (
       <div className={`${baseClasses} ${shapeClasses}`}>
         <feature.icon 
-          className={`w-${size === 48 ? '6' : '8'} h-${size === 48 ? '6' : '8'} text-white`} 
+          className={`${iconSizeClasses} text-white`} 
           style={{ transform: feature.shape === "diamond" ? "rotate(-45deg)" : "none" }}
         />
       </div>
@@ -182,30 +196,57 @@ export default function HealingWaveSymphony() {
 
   return (
     <section id="how-it-works" className="relative py-20 overflow-hidden bg-gradient-to-br from-emerald-50 via-white to-rose-50">
-      {/* Floating particles */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {Array.from({ length: 12 }).map((_, i) => (
-          <motion.div
-            key={i}
-            className="absolute w-2 h-2 bg-gradient-to-r from-emerald-400 to-rose-400 rounded-full opacity-30"
-            style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-            }}
-            animate={{
-              y: [0, -50, 0],
-              x: [0, Math.random() * 30 - 15, 0],
-              scale: [0.5, 1, 0.5],
-              opacity: [0.1, 0.5, 0.1],
-            }}
-            transition={{
-              duration: 4 + Math.random() * 2,
-              repeat: Infinity,
-              delay: i * 0.3,
-              ease: "easeInOut",
-            }}
-          />
-        ))}
+      {/* SEO-friendly structured data */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "HowTo",
+            "name": "How PAKHIMS Works",
+            "description": "Step-by-step guide to using PAKHIMS healthcare platform",
+            "step": features.map((feature, index) => ({
+              "@type": "HowToStep",
+              "position": index + 1,
+              "name": feature.title,
+              "text": feature.description,
+              "url": `#step-${feature.id}`
+            }))
+          })
+        }}
+      />
+
+      {/* Floating particles - Only render after hydration */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none" suppressHydrationWarning>
+        {isHydrated && Array.from({ length: 12 }).map((_, i) => {
+          // Use deterministic values based on index to avoid hydration mismatch
+          const leftPosition = (i * 17 + 23) % 100; // Deterministic left position
+          const topPosition = (i * 31 + 13) % 100;  // Deterministic top position
+          const xMovement = (i % 3 - 1) * 15;       // Deterministic x movement
+          
+          return (
+            <motion.div
+              key={i}
+              className="absolute w-2 h-2 bg-gradient-to-r from-emerald-400 to-rose-400 rounded-full opacity-30"
+              style={{
+                left: `${leftPosition}%`,
+                top: `${topPosition}%`,
+              }}
+              animate={{
+                y: [0, -50, 0],
+                x: [0, xMovement, 0],
+                scale: [0.5, 1, 0.5],
+                opacity: [0.1, 0.5, 0.1],
+              }}
+              transition={{
+                duration: 4 + (i % 3),
+                repeat: Infinity,
+                delay: i * 0.3,
+                ease: "easeInOut",
+              }}
+            />
+          )
+        })}
       </div>
 
       <div className="relative container mx-auto px-4">
@@ -225,20 +266,20 @@ export default function HealingWaveSymphony() {
           >
             <motion.div
               className="bg-white/80 backdrop-blur-sm px-6 py-3 rounded-full text-sm font-semibold border-2 border-emerald-200 shadow-lg"
-              animate={{
+              animate={isHydrated ? {
                 scale: [1, 1.02, 1],
                 borderColor: [
                   "rgb(167, 243, 208)", 
                   "rgb(244, 63, 94)", 
                   "rgb(167, 243, 208)"
                 ],
-              }}
-              transition={{
+              } : {}}
+              transition={isHydrated ? {
                 duration: WAVE_DURATION,
                 repeat: Infinity,
                 repeatDelay: WAVE_INTERVAL / 1000 - WAVE_DURATION,
                 ease: "easeInOut",
-              }}
+              } : {}}
             >
               <span className="bg-gradient-to-r from-emerald-600 to-rose-600 bg-clip-text text-transparent font-bold">
                 🎵 Your Healing Symphony
@@ -250,14 +291,14 @@ export default function HealingWaveSymphony() {
             How PAKHIMS
             <motion.span
               className="bg-gradient-to-r from-emerald-600 via-violet-600 to-rose-600 bg-clip-text text-transparent block lg:inline ml-2"
-              animate={{
+              animate={isHydrated ? {
                 backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"],
-              }}
-              transition={{
+              } : {}}
+              transition={isHydrated ? {
                 duration: 3,
                 repeat: Infinity,
                 ease: "easeInOut",
-              }}
+              } : {}}
               style={{ backgroundSize: "200% 200%" }}
             >
               Works Magic
@@ -266,14 +307,14 @@ export default function HealingWaveSymphony() {
 
           <motion.p
             className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed"
-            animate={{
+            animate={isHydrated ? {
               opacity: [0.8, 1, 0.8],
-            }}
-            transition={{
+            } : {}}
+            transition={isHydrated ? {
               duration: 2,
               repeat: Infinity,
               ease: "easeInOut",
-            }}
+            } : {}}
           >
             Experience our revolutionary healthcare process, orchestrated for your ultimate care and convenience.
           </motion.p>
@@ -281,44 +322,44 @@ export default function HealingWaveSymphony() {
 
         {/* Waveform Symphony */}
         <div className="relative max-w-6xl mx-auto h-[400px] md:h-[500px]" ref={containerRef}>
-          {/* SVG Waveform */}
+          {/* Static SVG Waveform - Always visible for SEO */}
           <svg
             viewBox="0 0 100 100"
             className="absolute inset-0 w-full h-full"
             style={{ filter: "drop-shadow(0 0 10px rgba(16, 185, 129, 0.2))" }}
           >
-            {/* Primary wave */}
+            {/* Primary wave - Static for SSR */}
             <motion.path
-              d={createWavePath(waveOffset)}
+              d={createWavePath(isHydrated ? waveOffset : 0)}
               fill="none"
               stroke="url(#primaryGradient)"
               strokeWidth="2"
-              animate={{
+              animate={isHydrated ? {
                 strokeOpacity: [0.6, 1, 0.6],
-              }}
-              transition={{
+              } : {}}
+              transition={isHydrated ? {
                 duration: WAVE_DURATION,
                 repeat: Infinity,
                 repeatDelay: WAVE_INTERVAL / 1000 - WAVE_DURATION,
                 ease: "easeInOut",
-              }}
+              } : {}}
             />
             
-            {/* Secondary wave */}
+            {/* Secondary wave - Static for SSR */}
             <motion.path
-              d={createWavePath(waveOffset + 30, 8)}
+              d={createWavePath(isHydrated ? waveOffset + 30 : 30, 8)}
               fill="none"
               stroke="url(#secondaryGradient)"
               strokeWidth="1"
               strokeDasharray="2 2"
-              animate={{
+              animate={isHydrated ? {
                 strokeOpacity: [0.3, 0.6, 0.3],
-              }}
-              transition={{
+              } : {}}
+              transition={isHydrated ? {
                 duration: WAVE_DURATION * 1.5,
                 repeat: Infinity,
                 ease: "easeInOut",
-              }}
+              } : {}}
             />
 
             <defs>
@@ -338,10 +379,14 @@ export default function HealingWaveSymphony() {
 
           {/* Feature Points */}
           {features.map((feature, index) => {
-            const yOffset = Math.sin((feature.position + waveOffset) * 0.08) * 30
+            // Ensure deterministic positioning for SSR safety
+            const baseYOffset = isHydrated ? Math.sin((feature.position + waveOffset) * 0.08) * 30 : 0
+            const yOffset = Number.isFinite(baseYOffset) ? baseYOffset : 0
+            
             return (
               <motion.div
                 key={feature.id}
+                id={`step-${feature.id}`}
                 className="absolute cursor-pointer z-20"
                 style={{
                   left: `${feature.position}%`,
@@ -352,26 +397,26 @@ export default function HealingWaveSymphony() {
                 whileInView={{ scale: 1, opacity: 1 }}
                 transition={{ delay: index * 0.2, duration: 0.6 }}
                 viewport={{ once: true }}
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => setSelectedFeature(feature.id)}
+                whileHover={isHydrated ? { scale: 1.1 } : {}}
+                whileTap={isHydrated ? { scale: 0.95 } : {}}
+                onClick={() => isHydrated && setSelectedFeature(feature.id)}
               >
                 <motion.div
-                  animate={{
+                  animate={isHydrated ? {
                     scale: [1, 1.05, 1],
                     boxShadow: [
                       "0 4px 15px rgba(0,0,0,0.1)",
                       "0 8px 25px rgba(0,0,0,0.15)",
                       "0 4px 15px rgba(0,0,0,0.1)",
                     ],
-                  }}
-                  transition={{
+                  } : {}}
+                  transition={isHydrated ? {
                     duration: WAVE_DURATION,
                     repeat: Infinity,
                     repeatDelay: WAVE_INTERVAL / 1000 - WAVE_DURATION,
                     ease: "easeInOut",
                     delay: index * 0.1,
-                  }}
+                  } : {}}
                 >
                   <ShapeIcon feature={feature} />
                 </motion.div>
@@ -392,9 +437,9 @@ export default function HealingWaveSymphony() {
           })}
         </div>
 
-        {/* Feature Detail Modal */}
+        {/* Feature Detail Modal - Only render after hydration */}
         <AnimatePresence>
-          {selectedFeature !== null && (
+          {isHydrated && selectedFeature !== null && (
             <motion.div
               className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
               initial={{ opacity: 0 }}
@@ -488,16 +533,16 @@ export default function HealingWaveSymphony() {
               >
                 <motion.div
                   className="w-12 h-12 bg-teal-100 rounded-xl flex items-center justify-center mx-auto mb-4"
-                  animate={{
+                  animate={isHydrated ? {
                     scale: [1, 1.05, 1],
-                  }}
-                  transition={{
+                  } : {}}
+                  transition={isHydrated ? {
                     duration: WAVE_DURATION,
                     repeat: Infinity,
                     repeatDelay: WAVE_INTERVAL / 1000 - WAVE_DURATION,
                     ease: "easeInOut",
                     delay: index * 0.2,
-                  }}
+                  } : {}}
                 >
                   <feature.icon className="w-6 h-6 text-teal-600" />
                 </motion.div>
@@ -512,6 +557,24 @@ export default function HealingWaveSymphony() {
             ))}
           </div>
         </motion.div>
+
+        {/* SEO-friendly static content - Always visible for search engines */}
+        <div className="sr-only">
+          <h3>How PAKHIMS Works - Step by Step</h3>
+          <ol>
+            {features.map((feature) => (
+              <li key={feature.id}>
+                <h4>{feature.title}</h4>
+                <p>{feature.description}</p>
+                <ul>
+                  {feature.details.map((detail, idx) => (
+                    <li key={idx}>{detail}</li>
+                  ))}
+                </ul>
+              </li>
+            ))}
+          </ol>
+        </div>
       </div>
     </section>
   )

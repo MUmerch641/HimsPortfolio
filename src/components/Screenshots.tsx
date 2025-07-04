@@ -159,6 +159,8 @@ const screenshots: Screenshot[] = [
 ]
 
 export default function EnhancedScreenshotGallery() {
+  // Hydration-safe state initialization
+  const [isHydrated, setIsHydrated] = useState(false)
   const [modalIsOpen, setModalIsOpen] = useState(false)
   const [currentImage, setCurrentImage] = useState(0)
   const [zoomedSection, setZoomedSection] = useState<string | null>(null)
@@ -167,37 +169,49 @@ export default function EnhancedScreenshotGallery() {
 
   const containerRef = useRef<HTMLDivElement>(null)
 
+  // Hydration effect - runs only on client
+  useEffect(() => {
+    setIsHydrated(true)
+  }, [])
+
   // Enhanced modal functions
   const openModal = (index: number) => {
+    if (!isHydrated) return
     setCurrentImage(index)
     setModalIsOpen(true)
-    document.body.style.overflow = "hidden"
+    if (typeof document !== 'undefined') {
+      document.body.style.overflow = "hidden"
+    }
   }
 
   const closeModal = () => {
     setModalIsOpen(false)
     setZoomedSection(null)
     setIsAutoPlaying(false)
-    document.body.style.overflow = "unset"
+    if (typeof document !== 'undefined') {
+      document.body.style.overflow = "unset"
+    }
   }
 
   const nextImage = () => setCurrentImage((prev) => (prev + 1) % screenshots.length)
   const prevImage = () => setCurrentImage((prev) => (prev - 1 + screenshots.length) % screenshots.length)
   const openZoom = (sectionId: string) => setZoomedSection(sectionId)
 
-  // Auto-play functionality
+  // Auto-play functionality - only after hydration
   useEffect(() => {
-    if (!isAutoPlaying || !modalIsOpen) return
+    if (!isHydrated || !isAutoPlaying || !modalIsOpen) return
 
     const interval = setInterval(() => {
       nextImage()
     }, 4000)
 
     return () => clearInterval(interval)
-  }, [isAutoPlaying, modalIsOpen])
+  }, [isAutoPlaying, modalIsOpen, isHydrated])
 
-  // Enhanced keyboard navigation
+  // Enhanced keyboard navigation - only after hydration
   useEffect(() => {
+    if (!isHydrated) return
+    
     const handleKeyPress = (e: KeyboardEvent) => {
       if (!modalIsOpen) return
 
@@ -229,7 +243,7 @@ export default function EnhancedScreenshotGallery() {
 
     window.addEventListener("keydown", handleKeyPress)
     return () => window.removeEventListener("keydown", handleKeyPress)
-  }, [modalIsOpen, isAutoPlaying, currentImage])
+  }, [modalIsOpen, isAutoPlaying, currentImage, isHydrated])
 
   return (
     <section
@@ -240,10 +254,10 @@ export default function EnhancedScreenshotGallery() {
       {/* Enhanced Background - Optimized */}
       <div className="absolute inset-0 bg-gradient-to-br from-teal-50 via-purple-50 to-amber-50" />
 
-      {/* Floating Elements - Optimized */}
+      {/* Floating Elements - Optimized for SSR */}
       <div className="absolute inset-0 opacity-[0.03] pointer-events-none">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_2px_2px,rgb(20_184_166)_1px,transparent_0)] bg-[length:80px_80px]" />
-        {Array.from({ length: 8 }, (_, i) => (
+        {isHydrated && Array.from({ length: 8 }, (_, i) => (
           <div
             key={i}
             className="absolute w-2 h-2 bg-gradient-to-r from-teal-400 to-purple-400 rounded-full animate-bounce"
@@ -274,19 +288,19 @@ export default function EnhancedScreenshotGallery() {
           >
             <motion.div
               className="relative bg-gradient-to-r from-teal-50 via-purple-50 to-amber-50 px-8 py-4 rounded-full border border-teal-200 shadow-lg"
-              animate={{
+              animate={isHydrated ? {
                 scale: [1, 1.02, 1],
                 boxShadow: [
                   "0 10px 30px rgba(20, 184, 166, 0.1)",
                   "0 15px 40px rgba(139, 92, 246, 0.2)",
                   "0 10px 30px rgba(20, 184, 166, 0.1)",
                 ],
-              }}
-              transition={{
+              } : {}}
+              transition={isHydrated ? {
                 duration: 3,
                 repeat: Number.POSITIVE_INFINITY,
                 ease: "easeInOut",
-              }}
+              } : {}}
             >
               <span className="bg-gradient-to-r from-teal-600 via-purple-600 to-amber-600 bg-clip-text text-transparent font-bold text-lg flex items-center gap-2">
                 <SparklesIcon className="w-5 h-5 text-teal-600" />
@@ -305,14 +319,14 @@ export default function EnhancedScreenshotGallery() {
             See PAKHIMS in{" "}
             <motion.span
               className="bg-gradient-to-r from-teal-600 via-purple-600 to-amber-600 bg-clip-text text-transparent"
-              animate={{
+              animate={isHydrated ? {
                 backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"],
-              }}
-              transition={{
+              } : {}}
+              transition={isHydrated ? {
                 duration: 5,
                 repeat: Number.POSITIVE_INFINITY,
                 ease: "linear",
-              }}
+              } : {}}
               style={{ backgroundSize: "200% 200%" }}
             >
               Action
@@ -341,14 +355,14 @@ export default function EnhancedScreenshotGallery() {
               viewport={{ once: true }}
               className="relative group cursor-pointer"
               onClick={() => openModal(index)}
-              onHoverStart={() => setHoveredCard(index)}
-              onHoverEnd={() => setHoveredCard(null)}
-              whileHover={{ y: -5, scale: 1.01 }}
+              onMouseEnter={() => isHydrated && setHoveredCard(index)}
+              onMouseLeave={() => isHydrated && setHoveredCard(null)}
+              whileHover={isHydrated ? { y: -5, scale: 1.01 } : {}}
             >
               {/* Enhanced Card Background */}
               <div
                 className={`absolute inset-0 bg-gradient-to-br ${screenshot.bgGradient} rounded-3xl transition-all duration-200 ${
-                  hoveredCard === index ? 'opacity-80 scale-[1.01]' : 'opacity-50'
+                  isHydrated && hoveredCard === index ? 'opacity-80 scale-[1.01]' : 'opacity-50'
                 }`}
               />
 
@@ -393,43 +407,46 @@ export default function EnhancedScreenshotGallery() {
                       loading="lazy"
                     />
 
-                    {/* Enhanced Hotspots */}
+                    {/* Enhanced Hotspots - Only interactive after hydration */}
                     {screenshot.sections.map((section, sectionIndex) => (
                       <motion.div
                         key={section.id}
                         className="absolute cursor-pointer z-10"
                         style={{ left: section.x, top: section.y }}
                         initial={{ scale: 0, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
+                        animate={isHydrated ? { scale: 1, opacity: 1 } : { scale: 1, opacity: 0.5 }}
                         transition={{ delay: index * 0.2 + sectionIndex * 0.1 + 0.5 }}
-                        whileHover={{ scale: 1.3 }}
-                        whileTap={{ scale: 0.9 }}
+                        whileHover={isHydrated ? { scale: 1.3 } : {}}
+                        whileTap={isHydrated ? { scale: 0.9 } : {}}
                         onClick={(e) => {
+                          if (!isHydrated) return
                           e.stopPropagation()
                           openModal(index)
                           setTimeout(() => openZoom(section.id), 500)
                         }}
                       >
                         <div
-                          className={`w-8 h-8 ${section.color} rounded-full flex items-center justify-center text-white text-sm font-bold shadow-lg relative overflow-hidden animate-pulse`}
+                          className={`w-8 h-8 ${section.color} rounded-full flex items-center justify-center text-white text-sm font-bold shadow-lg relative overflow-hidden ${isHydrated ? 'animate-pulse' : ''}`}
                         >
                           <span className="text-xs">{section.icon}</span>
                         </div>
 
-                        {/* Enhanced Tooltip */}
-                        <div
-                          className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-150 pointer-events-none"
-                        >
-                          <div className="bg-gray-900 text-white px-3 py-2 rounded-lg text-xs whitespace-nowrap shadow-xl relative">
-                            {section.label}
-                            <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900" />
+                        {/* Enhanced Tooltip - Only show after hydration */}
+                        {isHydrated && (
+                          <div
+                            className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-150 pointer-events-none"
+                          >
+                            <div className="bg-gray-900 text-white px-3 py-2 rounded-lg text-xs whitespace-nowrap shadow-xl relative">
+                              {section.label}
+                              <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900" />
+                            </div>
                           </div>
-                        </div>
+                        )}
                       </motion.div>
                     ))}
 
-                    {/* Overlay Gradient */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    {/* Overlay Gradient - Only interactive after hydration */}
+                    <div className={`absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent transition-opacity duration-300 ${isHydrated ? 'opacity-0 group-hover:opacity-100' : 'opacity-0'}`} />
                   </div>
                 </div>
 
@@ -438,7 +455,7 @@ export default function EnhancedScreenshotGallery() {
                   <div className="flex items-center justify-between mb-3">
                     <motion.span
                       className={`px-3 py-1 bg-gradient-to-r ${screenshot.color} text-white text-sm font-bold rounded-full shadow-md flex items-center gap-2`}
-                      whileHover={{ scale: 1.05 }}
+                      whileHover={isHydrated ? { scale: 1.05 } : {}}
                     >
                       {screenshot.device === "browser" ? (
                         <ComputerDesktopIcon className="w-4 h-4" />
@@ -476,18 +493,20 @@ export default function EnhancedScreenshotGallery() {
                 </div>
               </div>
 
-              {/* Optimized Parallax Effect */}
-              <div
-                className="absolute inset-0 pointer-events-none"
-                style={{
-                  transform: `translate3d(${hoveredCard === index ? 5 : 0}px, ${hoveredCard === index ? 5 : 0}px, 0)`,
-                  transition: 'transform 0.3s ease-out',
-                }}
-              >
+              {/* Optimized Parallax Effect - Only after hydration */}
+              {isHydrated && (
                 <div
-                  className={`absolute top-4 right-4 w-32 h-32 bg-gradient-to-br ${screenshot.color} opacity-10 rounded-full blur-xl transition-opacity duration-300`}
-                />
-              </div>
+                  className="absolute inset-0 pointer-events-none"
+                  style={{
+                    transform: `translate3d(${hoveredCard === index ? 5 : 0}px, ${hoveredCard === index ? 5 : 0}px, 0)`,
+                    transition: 'transform 0.3s ease-out',
+                  }}
+                >
+                  <div
+                    className={`absolute top-4 right-4 w-32 h-32 bg-gradient-to-br ${screenshot.color} opacity-10 rounded-full blur-xl transition-opacity duration-300`}
+                  />
+                </div>
+              )}
             </motion.div>
           ))}
         </div>
@@ -503,14 +522,14 @@ export default function EnhancedScreenshotGallery() {
           <div className="relative bg-gradient-to-br from-teal-50 via-purple-50 to-amber-50 rounded-3xl p-12 border border-teal-200 shadow-2xl overflow-hidden">
             <motion.div
               className="absolute inset-0 bg-gradient-to-r from-teal-400/10 via-purple-400/10 to-amber-400/10"
-              animate={{
+              animate={isHydrated ? {
                 opacity: [0.1, 0.2, 0.1],
-              }}
-              transition={{
+              } : {}}
+              transition={isHydrated ? {
                 duration: 4,
                 repeat: Number.POSITIVE_INFINITY,
                 ease: "easeInOut",
-              }}
+              } : {}}
             />
 
             <div className="relative z-10">
@@ -540,9 +559,9 @@ export default function EnhancedScreenshotGallery() {
         </motion.div>
       </div>
 
-      {/* Enhanced Modal */}
+      {/* Enhanced Modal - Only render after hydration */}
       <AnimatePresence>
-        {modalIsOpen && (
+        {isHydrated && modalIsOpen && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -674,22 +693,21 @@ export default function EnhancedScreenshotGallery() {
                               e.stopPropagation()
                               openZoom(section.id)
                             }}
-                          >
-                            <motion.div
-                              className={`w-10 h-10 ${section.color} rounded-full flex items-center justify-center text-white font-bold shadow-xl relative overflow-hidden`}
-                              animate={{
-                                boxShadow: [
-                                  "0 0 0 0 rgba(20, 184, 166, 0.6)",
-                                  "0 0 0 15px rgba(20, 184, 166, 0)",
-                                  "0 0 0 0 rgba(20, 184, 166, 0.6)",
-                                ],
-                              }}
-                              transition={{
-                                duration: 2,
-                                repeat: Number.POSITIVE_INFINITY,
-                                ease: "easeInOut",
-                              }}
-                            >
+                          >                        <motion.div
+                          className={`w-10 h-10 ${section.color} rounded-full flex items-center justify-center text-white font-bold shadow-xl relative overflow-hidden`}
+                          animate={isHydrated ? {
+                            boxShadow: [
+                              "0 0 0 0 rgba(20, 184, 166, 0.6)",
+                              "0 0 0 15px rgba(20, 184, 166, 0)",
+                              "0 0 0 0 rgba(20, 184, 166, 0.6)",
+                            ],
+                          } : {}}
+                          transition={isHydrated ? {
+                            duration: 2,
+                            repeat: Number.POSITIVE_INFINITY,
+                            ease: "easeInOut",
+                          } : {}}
+                        >
                               <span>{section.icon}</span>
                             </motion.div>
                           </motion.div>
@@ -726,8 +744,8 @@ export default function EnhancedScreenshotGallery() {
                           </div>
 
                           <motion.button
-                            whileHover={{ scale: 1.1 }}
-                            whileTap={{ scale: 0.9 }}
+                            whileHover={isHydrated ? { scale: 1.1 } : {}}
+                            whileTap={isHydrated ? { scale: 0.9 } : {}}
                             onClick={() => setZoomedSection(null)}
                             className="w-8 h-8 bg-gray-100 hover:bg-gray-200 rounded-full flex items-center justify-center transition-colors ml-4"
                           >

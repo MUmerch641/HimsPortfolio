@@ -50,10 +50,21 @@ const audienceData = [
 ];
 
 export default function WhoItsFor() {
-  const [isMobile, setIsMobile] = useState(false);
+  // Hydration-safe state initialization - assume mobile-first for SSR
+  const [isHydrated, setIsHydrated] = useState(false);
+  const [isMobile, setIsMobile] = useState(true); // Mobile-first approach for SSR
 
+  // Hydration effect - runs only on client
   useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    setIsHydrated(true);
+    
+    // Safe window access after hydration
+    const handleResize = () => {
+      if (typeof window !== 'undefined') {
+        setIsMobile(window.innerWidth < 768);
+      }
+    };
+    
     handleResize();
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
@@ -61,6 +72,24 @@ export default function WhoItsFor() {
 
   return (
     <section id="who-its-for" className="relative py-20 bg-gradient-to-br from-white to-gray-50 overflow-hidden">
+      {/* SEO-friendly structured data */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Service",
+            "name": "PAKHIMS Healthcare Platform",
+            "description": "Healthcare management system connecting patients, providers, and administrators",
+            "audience": audienceData.map(audience => ({
+              "@type": "Audience",
+              "name": audience.title,
+              "description": audience.description
+            }))
+          })
+        }}
+      />
+      
       <div className="absolute inset-0 opacity-[0.02] bg-[radial-gradient(circle_at_2px_2px,rgb(16_185_129)_1px,transparent_0)] bg-[length:60px_60px]"></div>
 
       <div className="relative container mx-auto px-4">
@@ -82,9 +111,10 @@ export default function WhoItsFor() {
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">PAKHIMS connects a diverse ecosystem to revolutionize healthcare.</p>
         </motion.div>
 
-        {/* Healthcare Ecosystem Wheel */}
+        {/* Healthcare Ecosystem Wheel - SSR-safe rendering */}
         <div className="relative w-full max-w-4xl mx-auto">
-          {!isMobile ? (
+          {/* Desktop Layout - Only show interactive version after hydration */}
+          {isHydrated && !isMobile ? (
             <div className="relative w-full aspect-square">
               {audienceData.map((audience, index) => {
                 const angle = (index / audienceData.length) * 360;
@@ -93,7 +123,7 @@ export default function WhoItsFor() {
                 const y = 50 + 35 * Math.sin(rad);
 
                 return (
-                  <div
+                  <motion.div
                     key={audience.id}
                     className="absolute text-center"
                     style={{
@@ -101,13 +131,16 @@ export default function WhoItsFor() {
                       top: `${y}%`,
                       transform: "translate(-50%, -50%)",
                     }}
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.5, delay: index * 0.1 }}
                   >
                     <div className={`w-16 h-16 bg-${audience.color.split("-")[1]}-100 rounded-full flex items-center justify-center mb-2`}>
                       <audience.icon className="w-8 h-8 text-emerald-600" />
                     </div>
                     <h3 className="text-lg font-bold text-gray-900 mb-1">{audience.title}</h3>
                     <p className="text-sm text-gray-600 max-w-[120px]">{audience.description}</p>
-                  </div>
+                  </motion.div>
                 );
               })}
               {/* Wave Overlay */}
@@ -128,9 +161,16 @@ export default function WhoItsFor() {
               </svg>
             </div>
           ) : (
+            /* Mobile Layout & SSR Fallback - Always visible for SEO */
             <div className="space-y-8">
-              {audienceData.map((audience) => (
-                <div key={audience.id} className="flex items-center space-x-4 bg-white rounded-xl p-4 shadow-md">
+              {audienceData.map((audience, index) => (
+                <motion.div 
+                  key={audience.id} 
+                  className="flex items-center space-x-4 bg-white rounded-xl p-4 shadow-md"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={isHydrated ? { opacity: 1, y: 0 } : { opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: isHydrated ? index * 0.1 : 0 }}
+                >
                   <div className={`w-12 h-12 bg-${audience.color.split("-")[1]}-100 rounded-full flex items-center justify-center`}>
                     <audience.icon className="w-6 h-6 text-emerald-600" />
                   </div>
@@ -138,7 +178,7 @@ export default function WhoItsFor() {
                     <h3 className="text-lg font-bold text-gray-900">{audience.title}</h3>
                     <p className="text-sm text-gray-600">{audience.description}</p>
                   </div>
-                </div>
+                </motion.div>
               ))}
             </div>
           )}

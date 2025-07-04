@@ -8,14 +8,14 @@ import Image from "next/image"
 const testimonials = [
   {
     id: 1,
-    name: "Dr. Sarah Ahmed",
+    name: "Dr. Zahid",
     role: "Cardiologist",
-    location: "Karachi",
-    image: "/placeholder.svg?height=80&width=80",
+    location: "Rahim Yar khan",
+    image: "/images/drZahid.jpg",
     rating: 5,
     text: "PAKHIMS has revolutionized how I manage my practice. The seamless appointment system and patient management tools have increased my efficiency by 40%. It's truly the future of healthcare management.",
     specialty: "Heart Specialist",
-    experience: "15+ years",
+    experience: "10+ years",
     appointments: "2,500+",
   },
   {

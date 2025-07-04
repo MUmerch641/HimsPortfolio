@@ -1,7 +1,7 @@
 "use client";
 
 // import Image from "next/image";
-import { EnvelopeIcon, PhoneIcon, MapPinIcon } from "@heroicons/react/24/outline";
+import { EnvelopeIcon, PhoneIcon } from "@heroicons/react/24/outline";
 
 export default function Footer() {
   const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
@@ -68,15 +68,11 @@ export default function Footer() {
             <div className="space-y-2">
               <div className="flex items-center space-x-2 text-blue-200">
                 <EnvelopeIcon className="w-5 h-5" />
-                <span>info@pakhims.com</span>
+                <span>info.pakhims@gmail.com</span>
               </div>
               <div className="flex items-center space-x-2 text-blue-200">
                 <PhoneIcon className="w-5 h-5" />
-                <span>+92 123 456 7890</span>
-              </div>
-              <div className="flex items-center space-x-2 text-blue-200">
-                <MapPinIcon className="w-5 h-5" />
-                <span>123 Health Lane, Karachi, Pakistan</span>
+                <span>+92 302 887 6298</span>
               </div>
             </div>
           </div>
