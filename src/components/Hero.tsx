@@ -24,6 +24,8 @@ export default function HeartbeatHeroSection() {
   const [heartbeatPhase, setHeartbeatPhase] = useState(0)
   const [showHeartMessage, setShowHeartMessage] = useState(false)
   const [animationsEnabled, setAnimationsEnabled] = useState(true)
+  const [cursorPosition, setCursorPosition] = useState({ x: 0, y: 0 })
+  const [isMouseInSection, setIsMouseInSection] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
 
   const fullText = "PAKHIMS: Book Hospital Appointments with Ease"
@@ -74,36 +76,58 @@ export default function HeartbeatHeroSection() {
     return () => clearInterval(heartbeatTimer)
   }, [animationsEnabled])
 
-  // Mouse tracking with subtle heartbeat influence
-  const handleMouseMove = useCallback(
-    (e: MouseEvent) => {
-      if (containerRef.current && animationsEnabled) {
-        const rect = containerRef.current.getBoundingClientRect()
-        const x = (e.clientX - rect.left - rect.width / 2) / rect.width
-        const y = (e.clientY - rect.top - rect.height / 2) / rect.height
-        const heartbeatInfluence = Math.sin(heartbeatPhase * Math.PI * 0.5) * 2
-        mouseX.set(x * 20 + heartbeatInfluence)
-        mouseY.set(y * 20 + heartbeatInfluence)
-      }
-    },
-    [mouseX, mouseY, heartbeatPhase, animationsEnabled],
-  )
-
-  useEffect(() => {
-    window.addEventListener("mousemove", handleMouseMove)
-    return () => window.removeEventListener("mousemove", handleMouseMove)
-  }, [handleMouseMove])
-
   // Heart interaction handler
-  const handleHeartInteraction = () => {
+  const handleHeartInteraction = useCallback(() => {
+    console.log('Heart interaction triggered!', { animationsEnabled, isMouseInSection });
     if (animationsEnabled) {
       setShowHeartMessage(true)
       setTimeout(() => setShowHeartMessage(false), 2500)
     }
-  }
+  }, [animationsEnabled, isMouseInSection])
+
+  // Mouse tracking with custom cursor
+  const handleMouseMove = useCallback(
+    (e: MouseEvent) => {
+      if (containerRef.current) {
+        const rect = containerRef.current.getBoundingClientRect()
+        
+        // Update cursor position for heart cursor (relative to viewport)
+        setCursorPosition({ x: e.clientX, y: e.clientY })
+        
+        // Original parallax effect (only when mouse is NOT acting as cursor)
+        if (animationsEnabled && !isMouseInSection) {
+          const centerX = (e.clientX - rect.left - rect.width / 2) / rect.width
+          const centerY = (e.clientY - rect.top - rect.height / 2) / rect.height
+          const heartbeatInfluence = Math.sin(heartbeatPhase * Math.PI * 0.5) * 2
+          mouseX.set(centerX * 20 + heartbeatInfluence)
+          mouseY.set(centerY * 20 + heartbeatInfluence)
+        }
+      }
+    },
+    [mouseX, mouseY, heartbeatPhase, animationsEnabled, isMouseInSection],
+  )
+
+  useEffect(() => {
+    const container = containerRef.current
+    if (!container) return
+
+    const handleMouseEnter = () => setIsMouseInSection(true)
+    const handleMouseLeave = () => setIsMouseInSection(false)
+
+    container.addEventListener("mousemove", handleMouseMove)
+    container.addEventListener("mouseenter", handleMouseEnter)
+    container.addEventListener("mouseleave", handleMouseLeave)
+
+    return () => {
+      container.removeEventListener("mousemove", handleMouseMove)
+      container.removeEventListener("mouseenter", handleMouseEnter)
+      container.removeEventListener("mouseleave", handleMouseLeave)
+    }
+  }, [handleMouseMove])
 
   return (
-    <section ref={containerRef} id="home" className="min-h-screen relative overflow-hidden">
+    <section ref={containerRef} id="home" className="min-h-screen relative overflow-hidden" style={{ cursor: isMouseInSection ? 'none' : 'default' }}>
+
       {/* Animation toggle button */}
       {/* <motion.div
         className="absolute top-4 right-4 z-30"
@@ -125,49 +149,15 @@ export default function HeartbeatHeroSection() {
       {/* Heartbeat-driven background */}
       <motion.div
         className="absolute inset-0"
-        animate={
-          animationsEnabled
-            ? {
-                background: [
-                  "linear-gradient(135deg, #1e3a8a 0%, #3b82f6 50%, #60a5fa 100%)",
-                  "linear-gradient(135deg, #1e40af 0%, #2563eb 50%, #3b82f6 100%)",
-                  "linear-gradient(135deg, #1e3a8a 0%, #3b82f6 50%, #60a5fa 100%)",
-                ],
-              }
-            : {}
-        }
-        transition={
-          animationsEnabled
-            ? {
-                duration: HEARTBEAT_DURATION,
-                repeat: Number.POSITIVE_INFINITY,
-                repeatDelay: HEARTBEAT_INTERVAL / 1000 - HEARTBEAT_DURATION,
-                ease: "easeInOut",
-              }
-            : {}
-        }
+        style={{
+          background: "linear-gradient(135deg, #1e3a8a 0%, #3b82f6 50%, #60a5fa 100%)"
+        }}
       />
 
       {/* Heartbeat wave overlay with subtle ECG effect */}
       <motion.div
         className="absolute inset-0"
-        animate={
-          animationsEnabled
-            ? {
-                opacity: [0.1, 0.2, 0.1],
-              }
-            : { opacity: 0.1 }
-        }
-        transition={
-          animationsEnabled
-            ? {
-                duration: HEARTBEAT_DURATION,
-                repeat: Number.POSITIVE_INFINITY,
-                repeatDelay: HEARTBEAT_INTERVAL / 1000 - HEARTBEAT_DURATION,
-                ease: "easeInOut",
-              }
-            : {}
-        }
+        style={{ opacity: 0.1 }}
       >
         <div className="absolute inset-0 bg-gradient-to-br from-blue-400/20 via-transparent to-blue-600/20" />
         <motion.div
@@ -191,20 +181,35 @@ export default function HeartbeatHeroSection() {
         />
       </motion.div>
 
-      {/* Central pulsing heart */}
+      {/* Central pulsing heart - becomes cursor when mouse is in section */}
       <motion.div
-        className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-20"
-        style={{ x: animationsEnabled ? springX : 0, y: animationsEnabled ? springY : 0 }}
-        whileHover={{ scale: animationsEnabled ? 1.1 : 1 }}
-        whileTap={{ scale: animationsEnabled ? 0.95 : 1 }}
-        onHoverStart={handleHeartInteraction}
-        onClick={handleHeartInteraction}
+        className={`absolute z-20 ${isMouseInSection ? 'pointer-events-auto' : 'pointer-events-none'}`}
+        style={{
+          left: isMouseInSection ? cursorPosition.x : '50%',
+          top: isMouseInSection ? cursorPosition.y : '50%',
+          transform: 'translate(-50%, -50%)',
+          position: isMouseInSection ? 'fixed' : 'absolute',
+          x: !isMouseInSection && animationsEnabled ? springX : 0,
+          y: !isMouseInSection && animationsEnabled ? springY : 0,
+        }}
+        transition={{ type: "spring", stiffness: 400, damping: 30 }}
+        onContextMenu={(e) => {
+          if (isMouseInSection) {
+            e.preventDefault()
+            handleHeartInteraction()
+          }
+        }}
+        onClick={() => {
+          if (isMouseInSection) {
+            handleHeartInteraction()
+          }
+        }}
       >
         <motion.div
           animate={
             animationsEnabled
               ? {
-                  scale: [1, 1.05, 1],
+                  scale: isMouseInSection ? [1, 1.1, 1] : [1, 1.05, 1],
                   filter: [
                     "drop-shadow(0 0 10px rgba(255,255,255,0.3))",
                     "drop-shadow(0 0 20px rgba(255,255,255,0.5))",
@@ -223,27 +228,41 @@ export default function HeartbeatHeroSection() {
                 }
               : {}
           }
-          className="cursor-pointer"
+          className={isMouseInSection ? "cursor-pointer" : ""}
+          whileHover={isMouseInSection ? { scale: 1.2 } : {}}
+          whileTap={isMouseInSection ? { scale: 0.9 } : {}}
         >
-          <Heart className="w-16 h-16 text-white fill-blue-300/40 stroke-2" />
+          <Heart className={`${isMouseInSection ? 'w-8 h-8' : 'w-16 h-16'} text-white fill-blue-300/40 stroke-2 transition-all duration-300`} />
         </motion.div>
 
         <AnimatePresence>
           {showHeartMessage && animationsEnabled && (
             <>
               <motion.div
+                className="fixed pointer-events-none z-50"
+                style={{
+                  left: cursorPosition.x,
+                  top: cursorPosition.y,
+                  transform: 'translate(-50%, -50%)',
+                }}
                 initial={{ scale: 0, opacity: 0.8 }}
                 animate={{ scale: 4, opacity: 0 }}
                 exit={{ scale: 5, opacity: 0 }}
                 transition={{ duration: 1.5, ease: "easeOut" }}
-                className="absolute inset-0 border-2 border-white/30 rounded-full"
-              />
+              >
+                <div className="w-8 h-8 border-2 border-white/30 rounded-full" />
+              </motion.div>
               <motion.div
+                className="fixed pointer-events-none z-50"
+                style={{
+                  left: cursorPosition.x,
+                  top: cursorPosition.y - 60,
+                  transform: 'translate(-50%, 0)',
+                }}
                 initial={{ opacity: 0, y: 20, scale: 0.8 }}
-                animate={{ opacity: 1, y: -40, scale: 1 }}
-                exit={{ opacity: 0, y: -50, scale: 0.8 }}
+                animate={{ opacity: 1, y: -20, scale: 1 }}
+                exit={{ opacity: 0, y: -40, scale: 0.8 }}
                 transition={{ duration: 2.5, ease: "easeOut" }}
-                className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-full"
               >
                 <div className="bg-white/90 backdrop-blur-md text-blue-900 px-4 py-2 rounded-full text-sm font-medium shadow-lg whitespace-nowrap">
                   💙 Your Health, Our Priority
@@ -374,48 +393,10 @@ export default function HeartbeatHeroSection() {
               <motion.div
                 key={index}
                 className="bg-white/10 backdrop-blur-md rounded-xl px-4 py-2 border border-white/15"
-                animate={
-                  animationsEnabled
-                    ? {
-                        scale: [1, 1.03, 1],
-                        borderColor: ["rgba(255,255,255,0.15)", "rgba(255,255,255,0.25)", "rgba(255,255,255,0.15)"],
-                      }
-                    : {}
-                }
-                transition={
-                  animationsEnabled
-                    ? {
-                        duration: HEARTBEAT_DURATION,
-                        repeat: Number.POSITIVE_INFINITY,
-                        repeatDelay: HEARTBEAT_INTERVAL / 1000 - HEARTBEAT_DURATION,
-                        ease: "easeInOut",
-                        delay: index * 0.1,
-                      }
-                    : {}
-                }
                 whileHover={{ scale: 1.05, backgroundColor: "rgba(255,255,255,0.1)" }}
               >
                 <div className="flex items-center gap-2 text-white/90">
-                  <motion.div
-                    animate={
-                      animationsEnabled
-                        ? {
-                            scale: [1, 1.05, 1],
-                          }
-                        : {}
-                    }
-                    transition={
-                      animationsEnabled
-                        ? {
-                            duration: HEARTBEAT_DURATION,
-                            repeat: Number.POSITIVE_INFINITY,
-                            repeatDelay: HEARTBEAT_INTERVAL / 1000 - HEARTBEAT_DURATION,
-                            ease: "easeInOut",
-                            delay: index * 0.1,
-                          }
-                        : {}
-                    }
-                  >
+                  <motion.div>
                     <stat.icon className="w-4 h-4" />
                   </motion.div>
                   <span className="font-semibold text-sm">{stat.value}</span>
@@ -440,24 +421,6 @@ export default function HeartbeatHeroSection() {
             >
               <motion.div
                 className="bg-white/10 backdrop-blur-md text-white px-4 py-2 rounded-full text-sm font-medium border border-white/20"
-                animate={
-                  animationsEnabled
-                    ? {
-                        scale: [1, 1.02, 1],
-                        borderColor: ["rgba(255,255,255,0.2)", "rgba(255,255,255,0.3)", "rgba(255,255,255,0.2)"],
-                      }
-                    : {}
-                }
-                transition={
-                  animationsEnabled
-                    ? {
-                        duration: HEARTBEAT_DURATION,
-                        repeat: Number.POSITIVE_INFINITY,
-                        repeatDelay: HEARTBEAT_INTERVAL / 1000 - HEARTBEAT_DURATION,
-                        ease: "easeInOut",
-                      }
-                    : {}
-                }
               >
                 🏥 Pakistan&apos;s Leading Healthcare Platform
               </motion.div>
@@ -560,75 +523,16 @@ export default function HeartbeatHeroSection() {
                 whileHover={{ scale: 1.02, y: -2 }}
                 whileTap={{ scale: 0.98 }}
                 className="group"
-                animate={
-                  animationsEnabled
-                    ? {
-                        scale: [1, 1.01, 1],
-                        boxShadow: [
-                          "0 8px 16px rgba(0,0,0,0.15)",
-                          "0 10px 20px rgba(0,0,0,0.2)",
-                          "0 8px 16px rgba(0,0,0,0.15)",
-                        ],
-                      }
-                    : {}
-                }
-                transition={
-                  animationsEnabled
-                    ? {
-                        duration: HEARTBEAT_DURATION,
-                        repeat: Number.POSITIVE_INFINITY,
-                        repeatDelay: HEARTBEAT_INTERVAL / 1000 - HEARTBEAT_DURATION,
-                        ease: "easeInOut",
-                      }
-                    : {}
-                }
               >
                 <Button
                   size="lg"
                   className="bg-white text-blue-900 hover:bg-blue-50 px-8 py-4 text-lg font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 border-0"
                 >
-                  <motion.div
-                    animate={
-                      animationsEnabled
-                        ? {
-                            scale: [1, 1.05, 1],
-                          }
-                        : {}
-                    }
-                    transition={
-                      animationsEnabled
-                        ? {
-                            duration: HEARTBEAT_DURATION,
-                            repeat: Number.POSITIVE_INFINITY,
-                            repeatDelay: HEARTBEAT_INTERVAL / 1000 - HEARTBEAT_DURATION,
-                            ease: "easeInOut",
-                          }
-                        : {}
-                    }
-                  >
+                  <motion.div>
                     <Calendar className="w-5 h-5 mr-2" />
                   </motion.div>
                   Book Appointment
-                  <motion.div
-                    className="ml-2 group-hover:translate-x-1 transition-transform duration-200"
-                    animate={
-                      animationsEnabled
-                        ? {
-                            x: [0, 2, 0],
-                          }
-                        : {}
-                    }
-                    transition={
-                      animationsEnabled
-                        ? {
-                            duration: HEARTBEAT_DURATION,
-                            repeat: Number.POSITIVE_INFINITY,
-                            repeatDelay: HEARTBEAT_INTERVAL / 1000 - HEARTBEAT_DURATION,
-                            ease: "easeInOut",
-                          }
-                        : {}
-                    }
-                  >
+                  <motion.div className="ml-2 group-hover:translate-x-1 transition-transform duration-200">
                     <ArrowRight className="w-4 h-4" />
                   </motion.div>
                 </Button>
@@ -639,50 +543,13 @@ export default function HeartbeatHeroSection() {
               <motion.div
                 whileHover={{ scale: 1.02, y: -2 }}
                 whileTap={{ scale: 0.98 }}
-                animate={
-                  animationsEnabled
-                    ? {
-                        borderColor: ["rgba(255,255,255,0.2)", "rgba(255,255,255,0.3)", "rgba(255,255,255,0.2)"],
-                      }
-                    : {}
-                }
-                transition={
-                  animationsEnabled
-                    ? {
-                        duration: HEARTBEAT_DURATION,
-                        repeat: Number.POSITIVE_INFINITY,
-                        repeatDelay: HEARTBEAT_INTERVAL / 1000 - HEARTBEAT_DURATION,
-                        ease: "easeInOut",
-                        delay: 0.1,
-                      }
-                    : {}
-                }
               >
                 <Button
                   variant="outline"
                   size="lg"
                   className="bg-transparent backdrop-blur-md border-white/20 text-white hover:bg-white/10 px-8 py-4 text-lg font-semibold rounded-xl transition-all duration-300"
                 >
-                  <motion.div
-                    animate={
-                      animationsEnabled
-                        ? {
-                            scale: [1, 1.05, 1],
-                          }
-                        : {}
-                    }
-                    transition={
-                      animationsEnabled
-                        ? {
-                            duration: HEARTBEAT_DURATION,
-                            repeat: Number.POSITIVE_INFINITY,
-                            repeatDelay: HEARTBEAT_INTERVAL / 1000 - HEARTBEAT_DURATION,
-                            ease: "easeInOut",
-                            delay: 0.1,
-                          }
-                        : {}
-                    }
-                  >
+                  <motion.div>
                     <Stethoscope className="w-5 h-5 mr-2" />
                   </motion.div>
                   Healthcare Login

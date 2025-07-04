@@ -3,7 +3,7 @@
 import type React from "react"
 
 import { useState, useEffect, useRef } from "react"
-import { motion, AnimatePresence, useMotionValue, useSpring } from "framer-motion"
+import { motion, AnimatePresence } from "framer-motion"
 import Image from "next/image"
 import {
   ArrowLeftIcon,
@@ -165,11 +165,6 @@ export default function EnhancedScreenshotGallery() {
   const [isAutoPlaying, setIsAutoPlaying] = useState(false)
   const [hoveredCard, setHoveredCard] = useState<number | null>(null)
 
-  const mouseX = useMotionValue(0)
-  const mouseY = useMotionValue(0)
-  const springX = useSpring(mouseX, { stiffness: 100, damping: 30 })
-  const springY = useSpring(mouseY, { stiffness: 100, damping: 30 })
-
   const containerRef = useRef<HTMLDivElement>(null)
 
   // Enhanced modal functions
@@ -236,63 +231,27 @@ export default function EnhancedScreenshotGallery() {
     return () => window.removeEventListener("keydown", handleKeyPress)
   }, [modalIsOpen, isAutoPlaying, currentImage])
 
-  // Mouse tracking for parallax effect
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!containerRef.current) return
-    const rect = containerRef.current.getBoundingClientRect()
-    const x = (e.clientX - rect.left - rect.width / 2) / rect.width
-    const y = (e.clientY - rect.top - rect.height / 2) / rect.height
-    mouseX.set(x * 20)
-    mouseY.set(y * 20)
-  }
-
   return (
     <section
       id="screenshots"
       className="relative py-24 overflow-hidden"
       ref={containerRef}
-      onMouseMove={handleMouseMove}
     >
-      {/* Enhanced Background */}
-      <div className="absolute inset-0">
-        <motion.div
-          className="absolute inset-0"
-          animate={{
-            background: [
-              "linear-gradient(135deg, #f0fdfa 0%, #ecfdf5 25%, #fef7ff 50%, #fff7ed 75%, #fef2f2 100%)",
-              "linear-gradient(135deg, #ecfdf5 0%, #fef7ff 25%, #fff7ed 50%, #fef2f2 75%, #f0fdfa 100%)",
-              "linear-gradient(135deg, #fef7ff 0%, #fff7ed 25%, #fef2f2 50%, #f0fdfa 75%, #ecfdf5 100%)",
-            ],
-          }}
-          transition={{
-            duration: 12,
-            repeat: Number.POSITIVE_INFINITY,
-            ease: "easeInOut",
-          }}
-        />
-      </div>
+      {/* Enhanced Background - Optimized */}
+      <div className="absolute inset-0 bg-gradient-to-br from-teal-50 via-purple-50 to-amber-50" />
 
-      {/* Floating Elements */}
-      <div className="absolute inset-0 opacity-[0.03]">
+      {/* Floating Elements - Optimized */}
+      <div className="absolute inset-0 opacity-[0.03] pointer-events-none">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_2px_2px,rgb(20_184_166)_1px,transparent_0)] bg-[length:80px_80px]" />
-        {Array.from({ length: 15 }, (_, i) => (
-          <motion.div
+        {Array.from({ length: 8 }, (_, i) => (
+          <div
             key={i}
-            className="absolute w-2 h-2 bg-gradient-to-r from-teal-400 to-purple-400 rounded-full"
+            className="absolute w-2 h-2 bg-gradient-to-r from-teal-400 to-purple-400 rounded-full animate-bounce"
             style={{
               left: `${Math.random() * 100}%`,
               top: `${Math.random() * 100}%`,
-            }}
-            animate={{
-              y: [0, -100, 0],
-              opacity: [0.2, 0.6, 0.2],
-              scale: [1, 1.2, 1],
-            }}
-            transition={{
-              duration: Math.random() * 10 + 15,
-              repeat: Number.POSITIVE_INFINITY,
-              delay: Math.random() * 5,
-              ease: "easeInOut",
+              animationDelay: `${Math.random() * 5}s`,
+              animationDuration: `${Math.random() * 10 + 15}s`,
             }}
           />
         ))}
@@ -378,22 +337,19 @@ export default function EnhancedScreenshotGallery() {
               key={screenshot.id}
               initial={{ opacity: 0, y: 50, scale: 0.9 }}
               whileInView={{ opacity: 1, y: 0, scale: 1 }}
-              transition={{ duration: 0.8, delay: index * 0.2, type: "spring" }}
+              transition={{ duration: 0.2, delay: index * 0.1, type: "spring", stiffness: 100, damping: 15 }}
               viewport={{ once: true }}
               className="relative group cursor-pointer"
               onClick={() => openModal(index)}
               onHoverStart={() => setHoveredCard(index)}
               onHoverEnd={() => setHoveredCard(null)}
-              whileHover={{ y: -10, scale: 1.02 }}
+              whileHover={{ y: -5, scale: 1.01 }}
             >
               {/* Enhanced Card Background */}
-              <motion.div
-                className={`absolute inset-0 bg-gradient-to-br ${screenshot.bgGradient} rounded-3xl opacity-50`}
-                animate={{
-                  opacity: hoveredCard === index ? 0.8 : 0.5,
-                  scale: hoveredCard === index ? 1.02 : 1,
-                }}
-                transition={{ duration: 0.3 }}
+              <div
+                className={`absolute inset-0 bg-gradient-to-br ${screenshot.bgGradient} rounded-3xl transition-all duration-200 ${
+                  hoveredCard === index ? 'opacity-80 scale-[1.01]' : 'opacity-50'
+                }`}
               />
 
               {/* Device Frame */}
@@ -432,8 +388,9 @@ export default function EnhancedScreenshotGallery() {
                       src={screenshot.src || "/placeholder.svg"}
                       alt={screenshot.alt}
                       fill
-                      className="object-cover transition-transform duration-500 group-hover:scale-110"
+                      className="object-cover transition-transform duration-300 group-hover:scale-105 will-change-transform"
                       sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                      loading="lazy"
                     />
 
                     {/* Enhanced Hotspots */}
@@ -453,43 +410,21 @@ export default function EnhancedScreenshotGallery() {
                           setTimeout(() => openZoom(section.id), 500)
                         }}
                       >
-                        <motion.div
-                          className={`w-8 h-8 ${section.color} rounded-full flex items-center justify-center text-white text-sm font-bold shadow-lg relative overflow-hidden`}
-                          animate={{
-                            boxShadow: [
-                              "0 0 0 0 rgba(20, 184, 166, 0.4)",
-                              "0 0 0 10px rgba(20, 184, 166, 0)",
-                              "0 0 0 0 rgba(20, 184, 166, 0.4)",
-                            ],
-                          }}
-                          transition={{
-                            duration: 2,
-                            repeat: Number.POSITIVE_INFINITY,
-                            ease: "easeInOut",
-                          }}
+                        <div
+                          className={`w-8 h-8 ${section.color} rounded-full flex items-center justify-center text-white text-sm font-bold shadow-lg relative overflow-hidden animate-pulse`}
                         >
                           <span className="text-xs">{section.icon}</span>
-                          <motion.div
-                            className="absolute inset-0 bg-white/20 rounded-full"
-                            animate={{ rotate: [0, 360] }}
-                            transition={{
-                              duration: 8,
-                              repeat: Number.POSITIVE_INFINITY,
-                              ease: "linear",
-                            }}
-                          />
-                        </motion.div>
+                        </div>
 
                         {/* Enhanced Tooltip */}
-                        <motion.div
-                          className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none"
-                          whileHover={{ opacity: 1, y: -5 }}
+                        <div
+                          className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-150 pointer-events-none"
                         >
                           <div className="bg-gray-900 text-white px-3 py-2 rounded-lg text-xs whitespace-nowrap shadow-xl relative">
                             {section.label}
                             <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900" />
                           </div>
-                        </motion.div>
+                        </div>
                       </motion.div>
                     ))}
 
@@ -513,17 +448,15 @@ export default function EnhancedScreenshotGallery() {
                       {screenshot.category}
                     </motion.span>
 
-                    <motion.button
-                      whileHover={{ scale: 1.1, rotate: 5 }}
-                      whileTap={{ scale: 0.9 }}
-                      className="w-10 h-10 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg hover:bg-white transition-colors group"
+                    <button
+                      className="w-10 h-10 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg hover:bg-white hover:scale-105 transition-all duration-200 group"
                       onClick={(e) => {
                         e.stopPropagation()
                         openModal(index)
                       }}
                     >
-                      <MagnifyingGlassPlusIcon className="w-5 h-5 text-gray-700 group-hover:text-teal-600 transition-colors" />
-                    </motion.button>
+                      <MagnifyingGlassPlusIcon className="w-5 h-5 text-gray-700 group-hover:text-teal-600 transition-colors duration-200" />
+                    </button>
                   </div>
 
                   <h3 className="text-2xl font-bold text-gray-900 mb-2">{screenshot.title}</h3>
@@ -543,18 +476,18 @@ export default function EnhancedScreenshotGallery() {
                 </div>
               </div>
 
-              {/* Parallax Effect */}
-              <motion.div
+              {/* Optimized Parallax Effect */}
+              <div
                 className="absolute inset-0 pointer-events-none"
                 style={{
-                  x: springX,
-                  y: springY,
+                  transform: `translate3d(${hoveredCard === index ? 5 : 0}px, ${hoveredCard === index ? 5 : 0}px, 0)`,
+                  transition: 'transform 0.3s ease-out',
                 }}
               >
                 <div
-                  className={`absolute top-4 right-4 w-32 h-32 bg-gradient-to-br ${screenshot.color} opacity-10 rounded-full blur-xl`}
+                  className={`absolute top-4 right-4 w-32 h-32 bg-gradient-to-br ${screenshot.color} opacity-10 rounded-full blur-xl transition-opacity duration-300`}
                 />
-              </motion.div>
+              </div>
             </motion.div>
           ))}
         </div>
@@ -587,29 +520,20 @@ export default function EnhancedScreenshotGallery() {
               </p>
 
               <div className="flex flex-col sm:flex-row gap-6 justify-center">
-                <motion.button
-                  whileHover={{ scale: 1.05, y: -2 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="px-8 py-4 bg-gradient-to-r from-teal-500 via-emerald-500 to-cyan-600 text-white rounded-2xl font-bold text-lg shadow-xl hover:shadow-2xl transition-all duration-300 flex items-center justify-center gap-3 group"
+                <button
+                  className="px-8 py-4 bg-gradient-to-r from-teal-500 via-emerald-500 to-cyan-600 text-white rounded-2xl font-bold text-lg shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-200 flex items-center justify-center gap-3 group"
                 >
                   <SparklesIcon className="w-6 h-6 group-hover:rotate-12 transition-transform duration-200" />
                   Start Your Journey
-                  <motion.div
-                    animate={{ x: [0, 5, 0] }}
-                    transition={{ duration: 1.5, repeat: Number.POSITIVE_INFINITY }}
-                  >
-                    →
-                  </motion.div>
-                </motion.button>
+                  <span className="group-hover:translate-x-1 transition-transform duration-200">→</span>
+                </button>
 
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="px-8 py-4 bg-white text-teal-600 border-2 border-teal-200 rounded-2xl font-bold text-lg hover:bg-teal-50 transition-all duration-300 flex items-center justify-center gap-3 group"
+                <button
+                  className="px-8 py-4 bg-white text-teal-600 border-2 border-teal-200 rounded-2xl font-bold text-lg hover:bg-teal-50 hover:scale-105 transition-all duration-200 flex items-center justify-center gap-3 group"
                 >
                   <PlayIcon className="w-6 h-6 group-hover:scale-110 transition-transform duration-200" />
                   Watch Demo
-                </motion.button>
+                </button>
               </div>
             </div>
           </div>
@@ -643,47 +567,39 @@ export default function EnhancedScreenshotGallery() {
 
                 <div className="flex items-center gap-3">
                   {/* Auto-play Toggle */}
-                  <motion.button
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
+                  <button
                     onClick={() => setIsAutoPlaying(!isAutoPlaying)}
-                    className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
+                    className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200 hover:scale-105 ${
                       isAutoPlaying ? "bg-teal-100 text-teal-600" : "bg-gray-100 text-gray-600"
                     }`}
                   >
                     <PlayIcon className="w-5 h-5" />
-                  </motion.button>
+                  </button>
 
                   {/* Close Button */}
-                  <motion.button
-                    whileHover={{ scale: 1.1, rotate: 90 }}
-                    whileTap={{ scale: 0.9 }}
+                  <button
                     onClick={closeModal}
-                    className="w-10 h-10 bg-gray-100 hover:bg-gray-200 rounded-full flex items-center justify-center transition-colors"
+                    className="w-10 h-10 bg-gray-100 hover:bg-gray-200 rounded-full flex items-center justify-center transition-all duration-200 hover:scale-105"
                   >
                     <XMarkIcon className="w-5 h-5 text-gray-600" />
-                  </motion.button>
+                  </button>
                 </div>
               </div>
 
-              {/* Navigation Buttons */}
-              <motion.button
-                whileHover={{ scale: 1.1, x: -3 }}
-                whileTap={{ scale: 0.9 }}
+              {/* Navigation Buttons - Optimized */}
+              <button
                 onClick={prevImage}
-                className="absolute left-6 top-1/2 -translate-y-1/2 z-20 w-12 h-12 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-xl hover:bg-white transition-colors"
+                className="absolute left-6 top-1/2 -translate-y-1/2 z-20 w-12 h-12 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-xl hover:bg-white hover:scale-105 transition-all duration-200"
               >
                 <ArrowLeftIcon className="w-6 h-6 text-gray-600" />
-              </motion.button>
+              </button>
 
-              <motion.button
-                whileHover={{ scale: 1.1, x: 3 }}
-                whileTap={{ scale: 0.9 }}
+              <button
                 onClick={nextImage}
-                className="absolute right-6 top-1/2 -translate-y-1/2 z-20 w-12 h-12 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-xl hover:bg-white transition-colors"
+                className="absolute right-6 top-1/2 -translate-y-1/2 z-20 w-12 h-12 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-xl hover:bg-white hover:scale-105 transition-all duration-200"
               >
                 <ArrowRightIcon className="w-6 h-6 text-gray-600" />
-              </motion.button>
+              </button>
 
               {/* Main Image Display */}
               <div className="relative h-[60vh] overflow-hidden">
@@ -828,12 +744,10 @@ export default function EnhancedScreenshotGallery() {
               <div className="p-6 border-t border-gray-200">
                 <div className="flex items-center justify-center gap-4 overflow-x-auto">
                   {screenshots[currentImage].sections.map((section) => (
-                    <motion.button
+                    <button
                       key={section.id}
-                      whileHover={{ scale: 1.1, y: -2 }}
-                      whileTap={{ scale: 0.9 }}
                       onClick={() => openZoom(section.id)}
-                      className={`relative w-20 h-20 rounded-2xl overflow-hidden border-2 transition-all ${
+                      className={`relative w-20 h-20 rounded-2xl overflow-hidden border-2 transition-all duration-200 hover:scale-105 ${
                         zoomedSection === section.id
                           ? "border-teal-500 shadow-lg"
                           : "border-gray-200 hover:border-gray-300"
@@ -846,7 +760,7 @@ export default function EnhancedScreenshotGallery() {
                       <div className="absolute bottom-1 left-1 right-1 bg-black/50 text-white text-xs px-1 py-0.5 rounded text-center truncate">
                         {section.label}
                       </div>
-                    </motion.button>
+                    </button>
                   ))}
                 </div>
 

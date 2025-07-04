@@ -228,24 +228,9 @@ export default function HeartbeatJourneyMap() {
                 onHoverStart={() => setHoveredNode(feature.id)}
                 onHoverEnd={() => setHoveredNode(null)}
               >
-                {/* Node background with heartbeat */}
+                {/* Node background */}
                 <motion.div
                   className={`w-16 h-16 rounded-full bg-gradient-to-r ${feature.color} flex items-center justify-center shadow-lg relative overflow-hidden`}
-                  animate={{
-                    scale: [1, 1.05, 1],
-                    boxShadow: [
-                      "0 10px 20px rgba(0,0,0,0.1)",
-                      "0 15px 30px rgba(0,0,0,0.2)",
-                      "0 10px 20px rgba(0,0,0,0.1)",
-                    ],
-                  }}
-                  transition={{
-                    duration: HEARTBEAT_DURATION,
-                    repeat: Number.POSITIVE_INFINITY,
-                    repeatDelay: HEARTBEAT_INTERVAL / 1000 - HEARTBEAT_DURATION,
-                    ease: "easeInOut",
-                    delay: index * 0.1,
-                  }}
                 >
                   <feature.icon className="w-8 h-8 text-white" />
 
@@ -293,16 +278,6 @@ export default function HeartbeatJourneyMap() {
               >
                 <motion.div
                   className="w-10 h-10 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center shadow-md border border-gray-200/50"
-                  animate={{
-                    scale: [1, 1.02, 1],
-                  }}
-                  transition={{
-                    duration: HEARTBEAT_DURATION,
-                    repeat: Number.POSITIVE_INFINITY,
-                    repeatDelay: HEARTBEAT_INTERVAL / 1000 - HEARTBEAT_DURATION,
-                    ease: "easeInOut",
-                    delay: index * 0.15,
-                  }}
                 >
                   <indicator.icon className="w-5 h-5 text-blue-600" />
                 </motion.div>
