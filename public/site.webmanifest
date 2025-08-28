@@ -1,0 +1,94 @@
+{
+  "name": "PAKHIMS - Pakistan Healthcare Information Management System",
+  "short_name": "PAKHIMS",
+  "description": "Pakistan's leading healthcare platform with 50K+ active users and 4.9★ rating. Book verified doctor appointments, manage health records, and access 24/7 support.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#10b981",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "categories": [
+    "health",
+    "medical",
+    "healthcare",
+    "productivity",
+    "lifestyle"
+  ],
+  "lang": "en-US",
+  "dir": "ltr",
+  "scope": "/",
+  "related_applications": [
+    {
+      "platform": "play",
+      "url": "https://play.google.com/store/apps/details?id=com.pakhims.app",
+      "id": "com.pakhims.app"
+    },
+    {
+      "platform": "itunes",
+      "url": "https://apps.apple.com/app/pakhims/id123456789",
+      "id": "123456789"
+    }
+  ],
+  "prefer_related_applications": false,
+  "shortcuts": [
+    {
+      "name": "Book Appointment",
+      "short_name": "Book",
+      "description": "Quickly book an appointment with a doctor",
+      "url": "/appointments/book",
+      "icons": [
+        {
+          "src": "/icons/appointment-icon.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "My Health Records",
+      "short_name": "Records",
+      "description": "Access your health records",
+      "url": "/health-records",
+      "icons": [
+        {
+          "src": "/icons/records-icon.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Find Doctors",
+      "short_name": "Doctors",
+      "description": "Search for doctors by specialty",
+      "url": "/doctors",
+      "icons": [
+        {
+          "src": "/icons/doctor-icon.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
+    }
+  ]
+}

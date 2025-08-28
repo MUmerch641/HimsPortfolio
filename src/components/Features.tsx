@@ -5,74 +5,131 @@ import { motion, AnimatePresence } from "framer-motion"
 import {
   Calendar,
   Shield,
-  User,
-  Smartphone,
-  Clock,
-  Heart,
-  Star,
-  CheckCircle,
+  Users,
+  Stethoscope,
   X,
   ArrowRight,
+  Settings,
+  Building2,
+  Droplets,
+  Activity,
+  Lock,
 } from "lucide-react"
 
 // Heartbeat timing configuration (120 BPM = 500ms per beat)
 const HEARTBEAT_INTERVAL = 500 // 500ms per beat
 const HEARTBEAT_DURATION = 0.1 // Subtle pulse duration
 
-// Enhanced feature data with journey positioning
+// Enhanced feature data with journey positioning - Real PAKHIMS System Modules (Exact from Sidebar)
 const features = [
   {
     id: 1,
-    title: "Smart Booking",
+    title: "Appointments",
     description:
-      "Appointment scheduling that finds the perfect time slot for you and your doctor, reducing wait times and optimizing your healthcare journey.",
+      "Complete appointment scheduling and management system for both outpatient and inpatient services, streamlining healthcare delivery.",
     icon: Calendar,
-    stats: "< 30 sec",
+    stats: "24/7 Booking",
     color: "from-blue-500 to-blue-600",
-    position: { x: 25, y: 35 }, // Top-left of heart
+    position: { x: 25, y: 50 }, // Top-left of heart
     pathPosition: 0.1,
   },
   {
     id: 2,
-    title: "Bank-Level Security",
+    title: "Employee",
     description:
-      "Advanced 256-bit encryption and multi-factor authentication protect your sensitive health data with military-grade security protocols.",
-    icon: Shield,
-    stats: "256-bit SSL",
+      "Comprehensive employee management system for healthcare staff, including scheduling, payroll, and performance tracking.",
+    icon: Users,
+    stats: "Staff Management",
     color: "from-green-500 to-green-600",
     position: { x: 75, y: 35 }, // Top-right of heart
-    pathPosition: 0.3,
+    pathPosition: 0.2,
   },
   {
     id: 3,
-    title: "Verified Doctors",
+    title: "Insurance",
     description:
-      "Connect with licensed healthcare professionals verified through our rigorous PMDC screening process and continuous quality monitoring.",
-    icon: User,
-    stats: "500+ Doctors",
+      "Advanced insurance claims processing, coverage verification, and policy management integrated with major healthcare providers.",
+    icon: Shield,
+    stats: "Multi-Provider",
     color: "from-purple-500 to-purple-600",
-    position: { x: 50, y: 65 },
-        pathPosition: 0.7,
+    position: { x: 20, y: 30 }, // Left side of heart
+    pathPosition: 0.3,
   },
   {
     id: 4,
-    title: "Cross-Platform",
+    title: "Pathology",
     description:
-      "Seamless experience across all devices with real-time synchronization, offline support, and native mobile applications.",
-    icon: Smartphone,
-    stats: "iOS & Android",
-    color: "from-orange-500 to-orange-600",
-    position: { x: 85, y: 55 }, // Right side of heart
+      "Complete laboratory management system with test ordering, result tracking, and comprehensive diagnostic reporting capabilities.",
+    icon: Activity,
+    stats: "Lab Tests",
+    color: "from-red-500 to-red-600",
+    position: { x: 80, y: 55 }, // Right side of heart
+    pathPosition: 0.4,
+  },
+  {
+    id: 5,
+    title: "Settings",
+    description:
+      "System configuration and customization tools for healthcare facility management, user permissions, and workflow optimization.",
+    icon: Settings,
+    stats: "Custom Config",
+    color: "from-gray-500 to-gray-600",
+    position: { x: 50, y: 25 }, // Top center of heart
     pathPosition: 0.5,
+  },
+  {
+    id: 6,
+    title: "OPD",
+    description:
+      "Outpatient Department management with patient registration, consultation tracking, and appointment scheduling.",
+    icon: Stethoscope,
+    stats: "Outpatient Care",
+    color: "from-teal-500 to-teal-600",
+    position: { x: 35, y: 70 }, // Bottom left of heart
+    pathPosition: 0.6,
+  },
+  {
+    id: 7,
+    title: "IPD",
+    description:
+      "Inpatient Department management with bed allocation, patient admission, discharge planning, and ward administration.",
+    icon: Building2,
+    stats: "Inpatient Care",
+    color: "from-orange-500 to-orange-600",
+    position: { x: 65, y: 70 }, // Bottom right of heart
+    pathPosition: 0.7,
+  },
+  {
+    id: 8,
+    title: "Authentication",
+    description:
+      "Secure user authentication and access control system with role-based permissions, multi-factor authentication, and session management.",
+    icon: Lock,
+    stats: "Secure Access",
+    color: "from-indigo-500 to-indigo-600",
+    position: { x: 50, y: 80 }, // Bottom center of heart
+    pathPosition: 0.8,
+  },
+  {
+    id: 9,
+    title: "Blood Bank",
+    description:
+      "Blood bank management system with donor registration, blood inventory tracking, and transfusion management.",
+    icon: Droplets,
+    stats: "Blood Inventory",
+    color: "from-rose-500 to-rose-600",
+    position: { x: 50, y: 50 }, // Bottom center of heart (moved down)
+    pathPosition: 0.9,
   },
 ]
 
-// Trust indicators positioned around the heart
+// Trust indicators positioned around the heart - Real PAKHIMS Services (From Sidebar)
 const trustIndicators = [
-  { icon: Clock, label: "24/7 Support", value: "Always Available", position: { x: 15, y: 70 } },
-  { icon: Heart, label: "Patient Care", value: "50K+ Happy Patients", position: { x: 35, y: 85 } },
-  { icon: Star, label: "Top Rated", value: "4.9/5 Rating", position: { x: 65, y: 85 } },
-  { icon: CheckCircle, label: "Verified", value: "PMDC Certified", position: { x: 85, y: 70 } },
+  { icon: Users, label: "Employee Management", value: "Staff & Admin", position: { x: 15, y: 70 } },
+  { icon: Lock, label: "Secure Authentication", value: "Role-Based Access", position: { x: 85, y: 85 } },
+  { icon: Droplets, label: "Blood Bank", value: "Donation & Inventory", position: { x: 35, y: 85 } },
+  { icon: Settings, label: "System Settings", value: "Custom Config", position: { x: 65, y: 85 } },
+  { icon: Stethoscope, label: "Medical Care", value: "OPD & IPD", position: { x: 85, y: 70 } },
 ]
 
 export default function HeartbeatJourneyMap() {
@@ -133,24 +190,24 @@ export default function HeartbeatJourneyMap() {
             className="inline-block mb-6"
           >
             <div className="bg-blue-50 text-blue-700 px-6 py-3 rounded-full text-sm font-semibold border border-blue-100 shadow-sm">
-               Your Healthcare Journey
+              🏥 Complete Healthcare Management System
             </div>
           </motion.div>
 
           <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight">
-            Explore PAKHIMS&apos;s
+            PAKHIMS Core
             <span className="bg-gradient-to-r from-red-500 to-pink-600 bg-clip-text text-transparent block lg:inline">
               {" "}
-              Heartbeat
+              Modules
             </span>
           </h2>
 
           <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-            Navigate your healthcare with ease, guided by our innovative features and trusted care.
+            Comprehensive healthcare management platform with 9 core integrated modules for appointments, employee management, insurance, pathology, authentication, and complete patient care.
           </p>
         </motion.div>
 
-        {/* Heartbeat Journey Map */}
+        {/* PAKHIMS Core Modules Map */}
         <div className="relative max-w-6xl mx-auto" ref={containerRef}>
           <div className="relative h-96 md:h-[500px] lg:h-[600px]">
             {/* Heart-shaped SVG container */}
@@ -370,10 +427,10 @@ export default function HeartbeatJourneyMap() {
           viewport={{ once: true }}
           className="mt-16 text-center"
         >
-          <h3 className="text-2xl font-bold text-gray-900 mb-4">Vital Signs of Trust</h3>
-          <p className="text-gray-600 mb-8">PAKHIMS is built on a foundation of reliability and care</p>
+          <h3 className="text-2xl font-bold text-gray-900 mb-4">Additional System Modules</h3>
+          <p className="text-gray-600 mb-8">Extended healthcare management capabilities for comprehensive patient care</p>
 
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 max-w-4xl mx-auto">
+          <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 max-w-5xl mx-auto">
             {trustIndicators.map((indicator, index) => (
               <motion.div
                 key={index}

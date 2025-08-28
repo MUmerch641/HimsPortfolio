@@ -88,12 +88,9 @@ export default function EnhancedHeader() {
             initial={{ y: 0 }}
             animate={{ y: isVisible ? 0 : -100 }}
             transition={{ duration: 0.3, ease: "easeInOut" }}
-              className={`fixed w-full top-0 z-50 transition-all duration-500 ${
-            isScrolled 
-            ? "bg-white/95 backdrop-blur-xl shadow-xl border-b border-blue-100/50" 
-            : "bg-gradient-to-r from-blue-600 via-blue-500 to-blue-400 backdrop-blur-sm"
-        }`}
-        >
+              className={`fixed w-full top-0 z-50 transition-all duration-500 bg-white/95 backdrop-blur-xl shadow-xl border-b border-blue-100/50`}
+             >
+            {/* : "bg-gradient-to-r from-blue-600 via-blue-500 to-blue-400 backdrop-blur-sm" */}
             <div className="container mx-auto px-4">
                 <div className="flex items-center justify-between h-16 lg:h-20">
                     {/* Enhanced Logo */}

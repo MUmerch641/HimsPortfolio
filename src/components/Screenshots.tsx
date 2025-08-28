@@ -165,7 +165,7 @@ export default function EnhancedScreenshotGallery() {
   const [currentImage, setCurrentImage] = useState(0)
   const [zoomedSection, setZoomedSection] = useState<string | null>(null)
   const [isAutoPlaying, setIsAutoPlaying] = useState(false)
-  const [hoveredCard, setHoveredCard] = useState<number | null>(null)
+  const [hoveredCard] = useState<number | null>(null)
 
   const containerRef = useRef<HTMLDivElement>(null)
 
@@ -274,16 +274,16 @@ export default function EnhancedScreenshotGallery() {
       <div className="relative container mx-auto px-4">
         {/* Enhanced Section Header */}
         <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1 }}
-          viewport={{ once: true }}
+          // initial={{ opacity: 0, y: 40 }}
+          // whileInView={{ opacity: 1, y: 0 }}
+          // transition={{ duration: 1 }}
+          // viewport={{ once: true }}
           className="text-center mb-20"
         >
           <motion.div
-            initial={{ scale: 0.8, opacity: 0 }}
-            whileInView={{ scale: 1, opacity: 1 }}
-            transition={{ delay: 0.3, duration: 0.8 }}
+            // initial={{ scale: 0.8, opacity: 0 }}
+            // whileInView={{ scale: 1, opacity: 1 }}
+            // transition={{ delay: 0.3, duration: 0.8 }}
             className="inline-block mb-8"
           >
             <motion.div
@@ -349,15 +349,15 @@ export default function EnhancedScreenshotGallery() {
           {screenshots.map((screenshot, index) => (
             <motion.div
               key={screenshot.id}
-              initial={{ opacity: 0, y: 50, scale: 0.9 }}
-              whileInView={{ opacity: 1, y: 0, scale: 1 }}
-              transition={{ duration: 0.2, delay: index * 0.1, type: "spring", stiffness: 100, damping: 15 }}
-              viewport={{ once: true }}
               className="relative group cursor-pointer"
-              onClick={() => openModal(index)}
-              onMouseEnter={() => isHydrated && setHoveredCard(index)}
-              onMouseLeave={() => isHydrated && setHoveredCard(null)}
-              whileHover={isHydrated ? { y: -5, scale: 1.01 } : {}}
+              // initial={{ opacity: 0, y: 50, scale: 0.9 }}
+              // whileInView={{ opacity: 1, y: 0, scale: 1 }}
+              // transition={{ duration: 0.2, delay: index * 0.1, type: "spring", stiffness: 100, damping: 15 }}
+              // viewport={{ once: true }}
+              // onClick={() => openModal(index)}
+              // onMouseEnter={() => isHydrated && setHoveredCard(index)}
+              // onMouseLeave={() => isHydrated && setHoveredCard(null)}
+              // whileHover={isHydrated ? { y: -5, scale: 1.01 } : {}}
             >
               {/* Enhanced Card Background */}
               <div
@@ -511,52 +511,6 @@ export default function EnhancedScreenshotGallery() {
           ))}
         </div>
 
-        {/* Enhanced CTA Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1, delay: 0.3 }}
-          viewport={{ once: true }}
-          className="text-center"
-        >
-          <div className="relative bg-gradient-to-br from-teal-50 via-purple-50 to-amber-50 rounded-3xl p-12 border border-teal-200 shadow-2xl overflow-hidden">
-            <motion.div
-              className="absolute inset-0 bg-gradient-to-r from-teal-400/10 via-purple-400/10 to-amber-400/10"
-              animate={isHydrated ? {
-                opacity: [0.1, 0.2, 0.1],
-              } : {}}
-              transition={isHydrated ? {
-                duration: 4,
-                repeat: Number.POSITIVE_INFINITY,
-                ease: "easeInOut",
-              } : {}}
-            />
-
-            <div className="relative z-10">
-              <h3 className="text-4xl font-bold text-gray-900 mb-6">Ready to Transform Healthcare?</h3>
-              <p className="text-xl text-gray-600 mb-10 max-w-2xl mx-auto">
-                Join thousands of healthcare professionals and patients who trust PAKHIMS for their medical needs.
-              </p>
-
-              <div className="flex flex-col sm:flex-row gap-6 justify-center">
-                <button
-                  className="px-8 py-4 bg-gradient-to-r from-teal-500 via-emerald-500 to-cyan-600 text-white rounded-2xl font-bold text-lg shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-200 flex items-center justify-center gap-3 group"
-                >
-                  <SparklesIcon className="w-6 h-6 group-hover:rotate-12 transition-transform duration-200" />
-                  Start Your Journey
-                  <span className="group-hover:translate-x-1 transition-transform duration-200">→</span>
-                </button>
-
-                <button
-                  className="px-8 py-4 bg-white text-teal-600 border-2 border-teal-200 rounded-2xl font-bold text-lg hover:bg-teal-50 hover:scale-105 transition-all duration-200 flex items-center justify-center gap-3 group"
-                >
-                  <PlayIcon className="w-6 h-6 group-hover:scale-110 transition-transform duration-200" />
-                  Watch Demo
-                </button>
-              </div>
-            </div>
-          </div>
-        </motion.div>
       </div>
 
       {/* Enhanced Modal - Only render after hydration */}
