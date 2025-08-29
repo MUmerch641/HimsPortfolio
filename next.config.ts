@@ -5,6 +5,7 @@ const nextConfig: NextConfig = {
    images: {
     domains: ['pakhims.com'], // ✅ Add your domain here
   },
+  output: 'export',
 };
 
 export default nextConfig;
